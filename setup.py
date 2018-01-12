@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='s3_index_generator',
@@ -8,7 +8,7 @@ setup(
     author='Eric Flores',
     author_email='ericflorescode@gmail.com',
     license='MIT',
-    packages=['s3_index_generator'],
+    packages=find_packages(),
     scripts=['bin/s3-index-generator'],
     python_requires='>=2.5,<3.*',
     install_requires=[
