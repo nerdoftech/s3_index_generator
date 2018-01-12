@@ -23,7 +23,7 @@ def _list_objects(bucket, prefix, continue_token):
     try:
         return client.list_objects_v2(**list_objects_args)
     except Exception as e:
-        log.fatal('Error in _list_objects: "%s"%s' % (e.message + '\n'))
+        log.fatal('Error in _list_objects: "%s"\n' % e.message)
         exit(1)
 
 def _get_list_of_s3_objects(bucket, target_dir):
@@ -74,7 +74,7 @@ def recursive_index_search(bucket, target_dir, root_dir, obj_name='', ignore_pat
     try:
         rel_path = target_dir.relative_to(root_dir).parts
     except ValueError as e:
-        log.fatal('Error with root dir and target dir: "%s"\n\n' % e.mesage)
+        log.fatal('Error with root dir and target dir: "%s"\n' % e.mesage)
         exit(1)
     objs_in_each_dir = []
     objs_in_each_dir.append(
