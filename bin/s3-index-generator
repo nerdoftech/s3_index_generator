@@ -1,0 +1,91 @@
+#!/usr/bin/env python
+import sys
+import s3_index_generator
+import argparse
+
+parser = argparse.ArgumentParser(
+    description='CLI utility for creating index page from S3 directories. ' + \
+    "Creates and index page from objects at 'Target Directory' level. " + \
+    'Useful for creating an index file of builds from CI/CD pipline.'
+)
+parser.add_argument(
+    '-b',
+    metavar='bucket',
+    dest='bucket',
+    required=True,
+    help='Name of AWS S3 you wish to search.'
+)
+parser.add_argument(
+    '-t',
+    metavar='target directory',
+    dest='target_dir',
+    required=True,
+    help='Target directory to search and make index.html file.'
+)
+parser.add_argument(
+    '-r',
+    metavar='root directory',
+    dest='root_dir',
+    required=False,
+    help='Recursively put an index.html file in every directory between root dir (this arg)' + \
+    ' and target directory (-t arg).'
+)
+parser.add_argument(
+    '-n',
+    metavar='object name',
+    dest='obj_name',
+    required=False,
+    default='',
+    help='Optional object name to seach for in target directory.'
+)
+parser.add_argument(
+    '-i',
+    metavar='ignore pattern',
+    dest='ignore_pattern',
+    required=False,
+    help='Regex of ignore pattern for object file names.'
+)
+parser.add_argument(
+    '--no-s3-upload',
+    dest='no_upload',
+    required=False,
+    default=False,
+    action='store_true',
+    help='Do not upload index.html file to S3.'
+)
+# parser.add_argument(
+#     '--file',
+#     dest='file',
+#     required=False,
+#     help='Output index.html to this file. Can be used with or without --no-s3-upload option.'
+# )
+parser.add_argument(
+    '--html',
+    metavar='html template',
+    dest='html_template',
+    required=False,
+    help='Python module containing a compatible HTML template.'
+)
+parser.add_argument(
+    '--log-config',
+    metavar='logging config file',
+    dest='log_config',
+    required=False,
+    help='Config file for python logging module.'
+)
+parser.add_argument(
+    '--log-level',
+    metavar='log level',
+    dest='log_level',
+    required=False,
+    help='Sets the logging level for this program (default=INFO). Available log levels: ' + \
+        ', '.join(s3_index_generator.get_log_levels())
+)
+
+try:
+    args = parser.parse_args()
+except Exception as e:
+    sys.stderr.write(e.message + '\n\n')
+    exit(1)
+
+s3_index_generator.s3_index_run(args)
