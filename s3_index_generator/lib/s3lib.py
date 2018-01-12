@@ -23,7 +23,7 @@ def _list_objects(bucket, prefix, continue_token):
     try:
         return client.list_objects_v2(**list_objects_args)
     except Exception as e:
-        log.fatal('Error in _list_objects: "%s"%s' (e.message + '\n'))
+        log.fatal('Error in _list_objects: "%s"%s' % (e.message + '\n'))
         exit(1)
 
 def _get_list_of_s3_objects(bucket, target_dir):

@@ -14,6 +14,7 @@ setup(
     install_requires=[
       'boto3',
       'pathlib2',
+      'yattag'
     ],
     zip_safe=False,
     include_package_data=True
