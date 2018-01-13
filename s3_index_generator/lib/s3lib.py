@@ -31,36 +31,49 @@ def _get_list_of_s3_objects(bucket, target_dir):
     contents = []
     continue_token = ''
     while True:
-        response = _list_objects(bucket, consts.aps.join(target_dir.parts), continue_token)
+        response = _list_objects(bucket, str(target_dir), continue_token)
         if 'Contents' in response:
+            log.trace('_get_list_of_s3_objects _list_objects result len: %d' % len(response['Contents']))
             contents.extend(response['Contents'])
         if not response['IsTruncated']:
             break
         continue_token = response['NextContinuationToken']
-
+    log.trace('_get_list_of_s3_objects result len: %d' % len(contents))
     return contents
 
-def _search_objects(target_dir, s3_objects, obj_name='', ignore_pattern=''):
-    log.trace('_search_objects args: %s' % locals())
-    target_dir_num_folders = len(target_dir.parts)
+def _search_objects(target_dir, s3_objects, s3_obj_name='', ignore_pattern=''):
+    log.trace('_search_objects args: %s' % str({
+        target_dir: target_dir,
+        's3_objects len': len(s3_objects),
+        s3_obj_name: s3_obj_name,
+        ignore_pattern: ignore_pattern
+    }))
     matched_objects = set()
-    for obj in s3_objects:
-        obj_next_path_list = obj['Key'].split(consts.aps)[0 : target_dir_num_folders + 1]
-        obj_next_path_string = consts.aps.join(obj_next_path_list)
-        obj_path_instance = PurePosixPath(obj['Key'])
+    for s3_obj in s3_objects:
+        s3_obj_path = PurePosixPath(s3_obj['Key'])
+        try:
+            obj_rel_path = s3_obj_path.relative_to(target_dir)
+        except ValueError as e:
+            log.trace('_search_objects s3_obj not relative_to target_dir: %s' % e.message)
+            continue
+        obj_next_path_list = target_dir.joinpath(obj_rel_path.parts[0])
+        obj_next_path_string = str(obj_next_path_list)
+        log.trace('_search_objects s3_obj_path: ' + str(s3_obj_path))
+        log.trace('_search_objects obj_next_path_string: ' + obj_next_path_string)
 
         if ignore_pattern:
-            if re.search(ignore_pattern, obj_path_instance.name):
+            if re.search(ignore_pattern, s3_obj_path.name):
                 continue
 
-        if obj_name:
+        if s3_obj_name:
             # Look for matches to obj_name
-            if (obj_next_path_list[target_dir_num_folders] == obj_name):
-                matched_objects.add(obj_next_path_string)
+            if re.search(s3_obj_name, s3_obj_path.name):
+                matched_objects.add(s3_obj)
         else:
             matched_objects.add(obj_next_path_string)
-
-    return sorted([obj for obj in matched_objects], reverse=True)
+    results = sorted([obj for obj in matched_objects], reverse=True)
+    log.trace('_search_objects results: %s' % results)
+    return results
 
 def single_index_search(bucket, target_dir, obj_name='', ignore_pattern=''):
     log.trace('single_index_search args: %s' % locals())
@@ -74,7 +87,7 @@ def recursive_index_search(bucket, target_dir, root_dir, obj_name='', ignore_pat
     try:
         rel_path = target_dir.relative_to(root_dir).parts
     except ValueError as e:
-        log.fatal('Error with root dir and target dir: "%s"\n' % e.mesage)
+        log.fatal('Error with root dir and target dir: "%s"\n' % e.message)
         exit(1)
     objs_in_each_dir = []
     objs_in_each_dir.append(

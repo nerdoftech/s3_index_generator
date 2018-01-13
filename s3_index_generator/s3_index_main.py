@@ -48,12 +48,13 @@ def s3_index_run(options):
             options.obj_name,
             options.ignore_pattern
         )
-
+    log.trace('directory search s3 objects: %s' % s3_objs)
     uploaded_indexs = []
     for dir_name, dir_objs in s3_objs:
-        log.debug('Creating index file for ' + str(dir_name))
-        html = create_html_index(str(dir_name), str(dir_name.parent), dir_objs)
         s3_obj_path = str(dir_name) + consts.index_file
+        log.debug('Creating index file for ' + s3_obj_path)
+        log.trace('create_html_index dir objects: %s' % dir_objs)
+        html = create_html_index(str(dir_name), str(dir_name.parent), dir_objs)
         log.trace('%s %s %s' % ('--------------',  s3_obj_path, '-------------- '))
         log.trace(html)
 
@@ -67,6 +68,7 @@ def s3_index_run(options):
             # File creation will go here
             pass
 
+    # Fix this when there are no sucessful uploads
     if len(uploaded_indexs):
         log.info('The following index pages have been uploaded:')
         unloaded_indexs = []
