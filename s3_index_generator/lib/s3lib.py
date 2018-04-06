@@ -60,8 +60,12 @@ def _search_objects(target_dir, s3_objects, s3_obj_name='', ignore_pattern=''):
         try:
             obj_next_path_list = target_dir.joinpath(obj_rel_path.parts[0])
         except Exception as e:
-            log.fatal('Error in _search_objects: "%s"\n' % e.message)
-            log.fatal( str({'s3_obj': s3_obj, 'obj_rel_path': obj_rel_path, 'target_dir': target_dir }) )
+            log.fatal('Error in _search_objects: "%s"' % e.message)
+            log.fatal(str({
+                's3_obj_path': s3_obj_path,
+                'obj_rel_path': obj_rel_path,
+                'target_dir': target_dir
+            }))
             exit(1)
         obj_next_path_string = str(obj_next_path_list)
         log.trace('_search_objects s3_obj_path: ' + str(s3_obj_path))
