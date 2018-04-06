@@ -53,6 +53,9 @@ def _search_objects(target_dir, s3_objects, s3_obj_name='', ignore_pattern=''):
         s3_obj_path = PurePosixPath(s3_obj['Key'])
         try:
             obj_rel_path = s3_obj_path.relative_to(target_dir)
+            # Needed with target_dir and s3_obj_path are the same
+            if (obj_rel_path == '.'):
+                obj_rel_path = target_dir
         except ValueError as e:
             log.trace('_search_objects s3_obj not relative_to target_dir: %s' % e.message)
             continue
