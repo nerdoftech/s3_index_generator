@@ -58,7 +58,7 @@ def _search_objects(target_dir, s3_objects, s3_obj_name='', ignore_pattern=''):
             continue
 
         try:
-            if (target_dir != obj_rel_path):
+            if (target_dir != s3_obj_path):
                 obj_next_path_list = target_dir.joinpath(obj_rel_path.parts[0])
             else:
                 obj_next_path_list = target_dir
