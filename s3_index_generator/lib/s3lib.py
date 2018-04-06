@@ -43,10 +43,10 @@ def _get_list_of_s3_objects(bucket, target_dir):
 
 def _search_objects(target_dir, s3_objects, s3_obj_name='', ignore_pattern=''):
     log.trace('_search_objects args: %s' % str({
-        target_dir: target_dir,
+        'target_dir': target_dir,
         's3_objects len': len(s3_objects),
-        s3_obj_name: s3_obj_name,
-        ignore_pattern: ignore_pattern
+        's3_obj_name': s3_obj_name,
+        'ignore_pattern': ignore_pattern
     }))
     matched_objects = set()
     for s3_obj in s3_objects:
