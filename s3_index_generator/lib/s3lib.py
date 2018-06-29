@@ -2,7 +2,7 @@ import sys
 import re
 import boto3
 import consts
-from pathlib2 import PurePosixPath
+from pathlib import PurePosixPath
 
 client = boto3.client('s3')
 s3 = boto3.resource('s3')
@@ -13,7 +13,7 @@ def setLogger(logger):
     log = logger
 
 def _list_objects(bucket, prefix, continue_token):
-    log.trace('_list_objects args: %s' % locals())
+    log.trace('_list_objects args: {}'.format(locals()))
     list_objects_args = {
                 'Bucket': bucket,
                 'EncodingType': 'url',
@@ -23,31 +23,32 @@ def _list_objects(bucket, prefix, continue_token):
     try:
         return client.list_objects_v2(**list_objects_args)
     except Exception as e:
-        log.fatal('Error in _list_objects: "%s"\n' % e.message)
+        log.fatal('Error in _list_objects: "{}"\n'.format(str(e)))
         exit(1)
 
 def _get_list_of_s3_objects(bucket, target_dir):
-    log.trace('_get_list_of_s3_objects args: %s' % locals())
+    log.trace('_get_list_of_s3_objects args: {}'.format(locals()))
     contents = []
     continue_token = ''
     while True:
         response = _list_objects(bucket, str(target_dir), continue_token)
         if 'Contents' in response:
-            log.trace('_get_list_of_s3_objects _list_objects result len: %d' % len(response['Contents']))
+            log.trace('_get_list_of_s3_objects _list_objects result len: {}'.format(
+                len(response['Contents'])))
             contents.extend(response['Contents'])
         if not response['IsTruncated']:
             break
         continue_token = response['NextContinuationToken']
-    log.trace('_get_list_of_s3_objects result len: %d' % len(contents))
+    log.trace('_get_list_of_s3_objects result len: {}'.format(len(contents)))
     return contents
 
 def _search_objects(target_dir, s3_objects, s3_obj_name='', ignore_pattern=''):
-    log.trace('_search_objects args: %s' % str({
+    log.trace('_search_objects args: {}'.format(str({
         'target_dir': target_dir,
         's3_objects len': len(s3_objects),
         's3_obj_name': s3_obj_name,
         'ignore_pattern': ignore_pattern
-    }))
+    })))
     matched_objects = set()
     for s3_obj in s3_objects:
         s3_obj_path = PurePosixPath(s3_obj['Key'])
@@ -56,14 +57,13 @@ def _search_objects(target_dir, s3_objects, s3_obj_name='', ignore_pattern=''):
             if (target_dir == s3_obj_path):
                 continue
         except ValueError as e:
-            log.trace('_search_objects s3_obj not relative_to target_dir: %s' % e.message)
+            log.trace('_search_objects s3_obj not relative_to target_dir: {}'.format(str(e)))
             continue
 
         try:
             obj_next_path_list = target_dir.joinpath(obj_rel_path.parts[0])
-
         except Exception as e:
-            log.fatal('Error in _search_objects: "%s"' % e.message)
+            log.fatal('Error in _search_objects: "{}"'.format(str(e)))
             log.fatal(str({
                 's3_obj_path': s3_obj_path,
                 'obj_rel_path': obj_rel_path,
@@ -85,22 +85,22 @@ def _search_objects(target_dir, s3_objects, s3_obj_name='', ignore_pattern=''):
         else:
             matched_objects.add(obj_next_path_string)
     results = sorted([obj for obj in matched_objects], reverse=True)
-    log.trace('_search_objects results: %s' % results)
+    log.trace('_search_objects results: {}'.format(results))
     return results
 
 def single_index_search(bucket, target_dir, obj_name='', ignore_pattern=''):
-    log.trace('single_index_search args: %s' % locals())
+    log.trace('single_index_search args: {}'.format(locals()))
     s3_objects = _get_list_of_s3_objects(bucket, target_dir)
     return [[target_dir, _search_objects(target_dir, s3_objects, obj_name, ignore_pattern)]]
 
 def recursive_index_search(bucket, target_dir, root_dir, obj_name='', ignore_pattern=''):
-    log.trace('recursive_index_search args: %s' % locals())
+    log.trace('recursive_index_search args: {}'.format(locals()))
     s3_objects = _get_list_of_s3_objects(bucket, root_dir)
     # Root dir not part of target dir will make pathlib throw
     try:
         rel_path = target_dir.relative_to(root_dir).parts
     except ValueError as e:
-        log.fatal('Error with root dir and target dir: "%s"\n' % e.message)
+        log.fatal('Error with root dir and target dir: "{}"\n'.format(str(e)))
         exit(1)
     objs_in_each_dir = []
     objs_in_each_dir.append(
@@ -114,7 +114,7 @@ def recursive_index_search(bucket, target_dir, root_dir, obj_name='', ignore_pat
     return objs_in_each_dir
 
 def upload_file_to_s3(bucket, body, s3_obj_path):
-    log.trace('upload_file_to_s3 args: %s' % locals())
+    log.trace('upload_file_to_s3 args: {}'.format(locals()))
     s3_bucket_instance = s3.Bucket(bucket)
     log.debug('Uploading index file for ' + s3_obj_path)
     try:
@@ -124,6 +124,6 @@ def upload_file_to_s3(bucket, body, s3_obj_path):
             Key = s3_obj_path,
         )
     except Exception as e:
-        log.error('Error uploading "%s": %s' % (s3_obj_path, e.message))
+        log.error('Error uploading "{}": {}'.format(s3_obj_path, str(e)))
         return False
     return True

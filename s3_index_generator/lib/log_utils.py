@@ -33,9 +33,9 @@ def getLogger(log_level, log_config):
 
 def getLoggingLevels():
     levels_numbers = []
-    for lvl in logging._levelNames.keys():
+    for lvl in logging._levelToName.keys():
         if type(lvl) == int:
             if not lvl: continue # Pass by NOTSET
             levels_numbers.append(lvl)
     levels_numbers = sorted(levels_numbers, reverse=True)
-    return [logging._levelNames[lvl] for lvl in levels_numbers]
+    return [logging._levelToName[lvl] for lvl in levels_numbers]

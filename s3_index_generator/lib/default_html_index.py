@@ -1,5 +1,5 @@
 from yattag import Doc, indent
-from pathlib2 import PurePath
+from pathlib import PurePath
 
 
 

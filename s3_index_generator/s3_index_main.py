@@ -1,9 +1,9 @@
 import sys
 import os
 import importlib
-from pathlib2 import PurePosixPath
+from pathlib import PurePosixPath
 
-sys.path.append('%s/lib' % os.path.dirname(__file__))
+sys.path.append('{}/lib'.format(os.path.dirname(__file__)))
 import s3lib
 import consts
 import log_utils
@@ -19,14 +19,14 @@ def parse_dir_name(raw_path):
 def s3_index_run(options):
     log = log_utils.getLogger(options.log_level, options.log_config)
     s3lib.setLogger(log)
-    log.trace('s3_index_run args %s: ' % options)
+    log.trace('s3_index_run args {}: '.format(options))
     # Import user specified html template or the default
     if options.html_template:
         try:
             template_file = importlib.import_module(options.html_template)
             create_html_index = getattr(template_file, 'create_html_index')
         except Exception as err:
-            log.fatal('Import of HTML template failed: ' + err.message)
+            log.fatal('Import of HTML template failed: ' + str(err))
             exit(1)
     else:
         from default_html_index import create_html_index
@@ -48,14 +48,14 @@ def s3_index_run(options):
             options.obj_name,
             options.ignore_pattern
         )
-    log.trace('directory search s3 objects: %s' % s3_objs)
+    log.trace('directory search s3 objects: {}'.format(s3_objs))
     uploaded_indexs = []
     for dir_name, dir_objs in s3_objs:
         s3_obj_path = str(dir_name) + consts.index_file
         log.debug('Creating index file for ' + s3_obj_path)
-        log.trace('create_html_index dir objects: %s' % dir_objs)
+        log.trace('create_html_index dir objects: {}'.format(dir_objs))
         html = create_html_index(str(dir_name), str(dir_name.parent), dir_objs)
-        log.trace('%s %s %s' % ('--------------',  s3_obj_path, '-------------- '))
+        log.trace('{} {} {}'.format('--------------',  s3_obj_path, '-------------- '))
         log.trace(html)
 
         if not options.no_upload:
@@ -64,6 +64,7 @@ def s3_index_run(options):
                     s3lib.upload_file_to_s3(options.bucket, html.encode(), s3_obj_path),
                     s3_obj_path
             ])
+
         else:
             # File creation will go here
             pass
